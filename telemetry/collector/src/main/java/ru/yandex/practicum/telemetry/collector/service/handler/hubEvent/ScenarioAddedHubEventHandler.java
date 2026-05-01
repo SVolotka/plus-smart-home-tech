@@ -15,7 +15,7 @@ import ru.yandex.practicum.telemetry.collector.service.handler.EnumMapper;
 
 import java.util.stream.Collectors;
 
-@Component("SCENARIO_ADDED")
+@Component
 public class ScenarioAddedHubEventHandler extends BaseHubEventHandler<ScenarioAddedEventAvro> {
     public ScenarioAddedHubEventHandler(KafkaEventProducer producer) {
         super(producer);

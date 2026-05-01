@@ -7,7 +7,7 @@ import ru.yandex.practicum.telemetry.collector.model.hubEvent.HubEvent;
 import ru.yandex.practicum.telemetry.collector.model.hubEvent.ScenarioRemovedEvent;
 import ru.yandex.practicum.telemetry.collector.service.KafkaEventProducer;
 
-@Component("SCENARIO_REMOVED")
+@Component
 public class ScenarioRemovedHubEventHandler extends BaseHubEventHandler<ScenarioRemovedEventAvro> {
     public ScenarioRemovedHubEventHandler(KafkaEventProducer producer) {
         super(producer);

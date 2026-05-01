@@ -7,7 +7,7 @@ import ru.yandex.practicum.telemetry.collector.model.sensorEvent.SensorEvent;
 import ru.yandex.practicum.telemetry.collector.model.sensorEvent.SwitchSensorEvent;
 import ru.yandex.practicum.telemetry.collector.service.KafkaEventProducer;
 
-@Component("SWITCH_SENSOR_EVENT")
+@Component
 public class SwitchSensorEventHandler extends BaseSensorEventHandler<SwitchSensorAvro> {
     public SwitchSensorEventHandler(KafkaEventProducer producer) {
         super(producer);

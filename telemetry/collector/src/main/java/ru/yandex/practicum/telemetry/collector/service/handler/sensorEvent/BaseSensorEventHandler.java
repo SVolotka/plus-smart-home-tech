@@ -19,7 +19,7 @@ public abstract class BaseSensorEventHandler<T> implements SensorEventHandler {
                 .setTimestamp(event.getTimestamp())
                 .setPayload(payload)
                 .build();
-        producer.sendSensorEvent(avroEvent.getHubId(), avroEvent);
+        producer.sendSensorEvent(avroEvent.getHubId(), avroEvent, avroEvent.getTimestamp());
     }
 
     protected abstract T mapToAvro(SensorEvent event);

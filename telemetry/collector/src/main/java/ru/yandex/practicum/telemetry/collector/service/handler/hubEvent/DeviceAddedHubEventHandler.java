@@ -9,7 +9,7 @@ import ru.yandex.practicum.telemetry.collector.model.hubEvent.HubEvent;
 import ru.yandex.practicum.telemetry.collector.service.KafkaEventProducer;
 import ru.yandex.practicum.telemetry.collector.service.handler.EnumMapper;
 
-@Component("DEVICE_ADDED")
+@Component
 public class DeviceAddedHubEventHandler extends BaseHubEventHandler<DeviceAddedEventAvro> {
     public DeviceAddedHubEventHandler(KafkaEventProducer producer) {
         super(producer);

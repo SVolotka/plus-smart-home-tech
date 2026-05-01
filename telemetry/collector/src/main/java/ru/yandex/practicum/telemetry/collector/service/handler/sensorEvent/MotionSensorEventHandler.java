@@ -7,7 +7,7 @@ import ru.yandex.practicum.telemetry.collector.model.sensorEvent.MotionSensorEve
 import ru.yandex.practicum.telemetry.collector.model.sensorEvent.SensorEvent;
 import ru.yandex.practicum.telemetry.collector.service.KafkaEventProducer;
 
-@Component("MOTION_SENSOR_EVENT")
+@Component
 public class MotionSensorEventHandler extends BaseSensorEventHandler<MotionSensorAvro> {
     public MotionSensorEventHandler(KafkaEventProducer producer) {
         super(producer);

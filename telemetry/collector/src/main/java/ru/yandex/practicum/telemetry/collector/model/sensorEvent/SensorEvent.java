@@ -8,7 +8,6 @@ import lombok.ToString;
 import ru.yandex.practicum.telemetry.collector.model.enums.SensorEventType;
 
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.NotBlank;
 
 import java.time.Instant;
 
@@ -28,10 +27,10 @@ import java.time.Instant;
         @JsonSubTypes.Type(value = ClimateSensorEvent.class, name = "CLIMATE_SENSOR_EVENT")
 })
 public abstract class SensorEvent {
-    @NotBlank
+    @NotNull
     private String id;
 
-    @NotBlank
+    @NotNull
     private String hubId;
 
     private Instant timestamp = Instant.now();

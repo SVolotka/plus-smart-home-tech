@@ -18,7 +18,7 @@ public abstract class BaseHubEventHandler<T> implements HubEventHandler {
                 .setTimestamp(event.getTimestamp())
                 .setPayload(payload)
                 .build();
-        producer.sendHubEvent(avroEvent.getHubId(), avroEvent);
+        producer.sendHubEvent(avroEvent.getHubId(), avroEvent, avroEvent.getTimestamp());
     }
 
     protected abstract T mapToAvro(HubEvent event);

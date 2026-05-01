@@ -7,7 +7,7 @@ import ru.yandex.practicum.telemetry.collector.model.hubEvent.DeviceRemovedEvent
 import ru.yandex.practicum.telemetry.collector.model.hubEvent.HubEvent;
 import ru.yandex.practicum.telemetry.collector.service.KafkaEventProducer;
 
-@Component("DEVICE_REMOVED")
+@Component
 public class DeviceRemovedHubEventHandler extends BaseHubEventHandler<DeviceRemovedEventAvro> {
     public DeviceRemovedHubEventHandler(KafkaEventProducer producer) {
         super(producer);
