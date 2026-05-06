@@ -1,30 +1,44 @@
 package ru.yandex.practicum.telemetry.collector.service.handler.sensorEvent;
 
 import org.springframework.stereotype.Component;
+import ru.yandex.practicum.grpc.telemetry.event.ClimateSensorProto;
+import ru.yandex.practicum.grpc.telemetry.event.SensorEventProto;
 import ru.yandex.practicum.kafka.telemetry.event.ClimateSensorAvro;
-import ru.yandex.practicum.telemetry.collector.model.enums.SensorEventType;
-import ru.yandex.practicum.telemetry.collector.model.sensorEvent.ClimateSensorEvent;
-import ru.yandex.practicum.telemetry.collector.model.sensorEvent.SensorEvent;
+import ru.yandex.practicum.kafka.telemetry.event.SensorEventAvro;
 import ru.yandex.practicum.telemetry.collector.service.KafkaEventProducer;
+import ru.yandex.practicum.telemetry.collector.service.handler.SensorEventHandler;
+
+import java.time.Instant;
 
 @Component
-public class ClimateSensorEventHandler extends BaseSensorEventHandler<ClimateSensorAvro> {
+public class ClimateSensorEventHandler implements SensorEventHandler {
+    private final KafkaEventProducer producer;
+
     public ClimateSensorEventHandler(KafkaEventProducer producer) {
-        super(producer);
+        this.producer = producer;
     }
 
     @Override
-    public SensorEventType getMessageType() {
-        return SensorEventType.CLIMATE_SENSOR_EVENT;
+    public SensorEventProto.PayloadCase getMessageType() {
+        return SensorEventProto.PayloadCase.CLIMATE_SENSOR;
     }
 
     @Override
-    protected ClimateSensorAvro mapToAvro(SensorEvent event) {
-        ClimateSensorEvent e = (ClimateSensorEvent) event;
-        return ClimateSensorAvro.newBuilder()
-                .setTemperatureC(e.getTemperatureC())
-                .setHumidity(e.getHumidity())
-                .setCo2Level(e.getCo2Level())
+    public void handle(SensorEventProto event) {
+        ClimateSensorProto climateSensor = event.getClimateSensor();
+        ClimateSensorAvro avroPayload = ClimateSensorAvro.newBuilder()
+                .setTemperatureC(climateSensor.getTemperatureC())
+                .setHumidity(climateSensor.getHumidity())
+                .setCo2Level(climateSensor.getCo2Level())
                 .build();
+
+        SensorEventAvro eventAvro = SensorEventAvro.newBuilder()
+                .setId(event.getId())
+                .setHubId(event.getHubId())
+                .setTimestamp(Instant.ofEpochSecond(event.getTimestamp().getSeconds(), event.getTimestamp().getNanos()))
+                .setPayload(avroPayload)
+                .build();
+
+        producer.sendSensorEvent(event.getHubId(), eventAvro, eventAvro.getTimestamp());
     }
 }

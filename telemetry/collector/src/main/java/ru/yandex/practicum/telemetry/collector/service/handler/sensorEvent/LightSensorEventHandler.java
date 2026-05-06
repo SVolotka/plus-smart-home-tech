@@ -1,29 +1,43 @@
 package ru.yandex.practicum.telemetry.collector.service.handler.sensorEvent;
 
 import org.springframework.stereotype.Component;
+import ru.yandex.practicum.grpc.telemetry.event.LightSensorProto;
+import ru.yandex.practicum.grpc.telemetry.event.SensorEventProto;
 import ru.yandex.practicum.kafka.telemetry.event.LightSensorAvro;
-import ru.yandex.practicum.telemetry.collector.model.enums.SensorEventType;
-import ru.yandex.practicum.telemetry.collector.model.sensorEvent.LightSensorEvent;
-import ru.yandex.practicum.telemetry.collector.model.sensorEvent.SensorEvent;
+import ru.yandex.practicum.kafka.telemetry.event.SensorEventAvro;
 import ru.yandex.practicum.telemetry.collector.service.KafkaEventProducer;
+import ru.yandex.practicum.telemetry.collector.service.handler.SensorEventHandler;
+
+import java.time.Instant;
 
 @Component
-public class LightSensorEventHandler extends BaseSensorEventHandler<LightSensorAvro> {
+public class LightSensorEventHandler implements SensorEventHandler {
+    private final KafkaEventProducer producer;
+
     public LightSensorEventHandler(KafkaEventProducer producer) {
-        super(producer);
+        this.producer = producer;
     }
 
     @Override
-    public SensorEventType getMessageType() {
-        return SensorEventType.LIGHT_SENSOR_EVENT;
+    public SensorEventProto.PayloadCase getMessageType() {
+        return SensorEventProto.PayloadCase.LIGHT_SENSOR;
     }
 
     @Override
-    protected LightSensorAvro mapToAvro(SensorEvent event) {
-        LightSensorEvent e = (LightSensorEvent) event;
-        return LightSensorAvro.newBuilder()
-                .setLinkQuality(e.getLinkQuality())
-                .setLuminosity(e.getLuminosity())
+    public void handle(SensorEventProto event) {
+        LightSensorProto lightSensor = event.getLightSensor();
+        LightSensorAvro avroPayload = LightSensorAvro.newBuilder()
+                .setLinkQuality(lightSensor.getLinkQuality())
+                .setLuminosity(lightSensor.getLuminosity())
                 .build();
+
+        SensorEventAvro eventAvro = SensorEventAvro.newBuilder()
+                .setId(event.getId())
+                .setHubId(event.getHubId())
+                .setTimestamp(Instant.ofEpochSecond(event.getTimestamp().getSeconds(), event.getTimestamp().getNanos()))
+                .setPayload(avroPayload)
+                .build();
+
+        producer.sendSensorEvent(event.getHubId(), eventAvro, eventAvro.getTimestamp());
     }
 }
