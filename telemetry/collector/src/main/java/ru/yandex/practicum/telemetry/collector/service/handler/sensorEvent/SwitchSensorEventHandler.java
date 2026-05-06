@@ -1,28 +1,42 @@
 package ru.yandex.practicum.telemetry.collector.service.handler.sensorEvent;
 
 import org.springframework.stereotype.Component;
+import ru.yandex.practicum.grpc.telemetry.event.SensorEventProto;
+import ru.yandex.practicum.grpc.telemetry.event.SwitchSensorProto;
+import ru.yandex.practicum.kafka.telemetry.event.SensorEventAvro;
 import ru.yandex.practicum.kafka.telemetry.event.SwitchSensorAvro;
-import ru.yandex.practicum.telemetry.collector.model.enums.SensorEventType;
-import ru.yandex.practicum.telemetry.collector.model.sensorEvent.SensorEvent;
-import ru.yandex.practicum.telemetry.collector.model.sensorEvent.SwitchSensorEvent;
 import ru.yandex.practicum.telemetry.collector.service.KafkaEventProducer;
+import ru.yandex.practicum.telemetry.collector.service.handler.SensorEventHandler;
+
+import java.time.Instant;
 
 @Component
-public class SwitchSensorEventHandler extends BaseSensorEventHandler<SwitchSensorAvro> {
+public class SwitchSensorEventHandler implements SensorEventHandler {
+    private final KafkaEventProducer producer;
+
     public SwitchSensorEventHandler(KafkaEventProducer producer) {
-        super(producer);
+        this.producer = producer;
     }
 
     @Override
-    public SensorEventType getMessageType() {
-        return SensorEventType.SWITCH_SENSOR_EVENT;
+    public SensorEventProto.PayloadCase getMessageType() {
+        return SensorEventProto.PayloadCase.SWITCH_SENSOR;
     }
 
     @Override
-    protected SwitchSensorAvro mapToAvro(SensorEvent event) {
-        SwitchSensorEvent e = (SwitchSensorEvent) event;
-        return SwitchSensorAvro.newBuilder()
-                .setState(e.getState())
+    public void handle(SensorEventProto event) {
+        SwitchSensorProto switchSensor = event.getSwitchSensor();
+        SwitchSensorAvro avroPayload = SwitchSensorAvro.newBuilder()
+                .setState(switchSensor.getState())
                 .build();
+
+        SensorEventAvro eventAvro = SensorEventAvro.newBuilder()
+                .setId(event.getId())
+                .setHubId(event.getHubId())
+                .setTimestamp(Instant.ofEpochSecond(event.getTimestamp().getSeconds(), event.getTimestamp().getNanos()))
+                .setPayload(avroPayload)
+                .build();
+
+        producer.sendSensorEvent(event.getHubId(), eventAvro, eventAvro.getTimestamp());
     }
 }
