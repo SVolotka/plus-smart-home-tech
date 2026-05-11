@@ -2,7 +2,6 @@ package ru.yandex.practicum.telemetry.analyzer.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import java.util.Objects;
 
 @Getter
 @Setter
@@ -11,6 +10,7 @@ import java.util.Objects;
 @AllArgsConstructor
 @Entity
 @Table(name = "scenario_actions")
+@EqualsAndHashCode(of = "id")
 public class ScenarioAction {
 
     @EmbeddedId
@@ -30,17 +30,4 @@ public class ScenarioAction {
     @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
     @JoinColumn(name = "action_id")
     private Action action;
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        ScenarioAction that = (ScenarioAction) o;
-        return id != null && Objects.equals(id, that.id);
-    }
-
-    @Override
-    public int hashCode() {
-        return id != null ? id.hashCode() : 0;
-    }
 }

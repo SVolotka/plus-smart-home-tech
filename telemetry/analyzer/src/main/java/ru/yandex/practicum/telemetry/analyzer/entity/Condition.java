@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 import lombok.*;
 import ru.yandex.practicum.telemetry.analyzer.enums.ConditionOperation;
 import ru.yandex.practicum.telemetry.analyzer.enums.ConditionType;
-import java.util.Objects;
 
 @Getter
 @Setter
@@ -13,6 +12,7 @@ import java.util.Objects;
 @AllArgsConstructor
 @Entity
 @Table(name = "conditions")
+@EqualsAndHashCode(of = "id")
 public class Condition {
 
     @Id
@@ -29,17 +29,4 @@ public class Condition {
 
     @Column(name = "value")
     private Integer value;
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Condition condition = (Condition) o;
-        return id != null && Objects.equals(id, condition.id);
-    }
-
-    @Override
-    public int hashCode() {
-        return getClass().hashCode();
-    }
 }

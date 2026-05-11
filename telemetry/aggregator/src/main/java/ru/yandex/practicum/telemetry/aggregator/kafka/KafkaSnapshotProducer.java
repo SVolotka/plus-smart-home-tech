@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.SendResult;
 import org.springframework.stereotype.Component;
+import ru.yandex.practicum.kafka.telemetry.event.SensorsSnapshotAvro;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -24,8 +25,14 @@ public class KafkaSnapshotProducer implements AutoCloseable {
     private String snapshotsTopic;
 
     public void sendSnapshot(String hubId, SpecificRecordBase snapshot) {
+        long timestamp = System.currentTimeMillis();
+        if (snapshot instanceof SensorsSnapshotAvro snapshotAvro) {
+            timestamp = snapshotAvro.getTimestamp().toEpochMilli();
+        }
         ProducerRecord<String, SpecificRecordBase> record = new ProducerRecord<>(
                 snapshotsTopic,
+                null,
+                timestamp,
                 hubId,
                 snapshot
         );

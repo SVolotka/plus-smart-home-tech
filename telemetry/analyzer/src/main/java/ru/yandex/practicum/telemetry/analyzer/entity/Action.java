@@ -3,7 +3,6 @@ package ru.yandex.practicum.telemetry.analyzer.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import ru.yandex.practicum.telemetry.analyzer.enums.ActionType;
-import java.util.Objects;
 
 @Getter
 @Setter
@@ -12,6 +11,7 @@ import java.util.Objects;
 @AllArgsConstructor
 @Entity
 @Table(name = "actions")
+@EqualsAndHashCode(of = "id")
 public class Action {
 
     @Id
@@ -24,17 +24,4 @@ public class Action {
 
     @Column(name = "value")
     private Integer value;
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Action action = (Action) o;
-        return id != null && Objects.equals(id, action.id);
-    }
-
-    @Override
-    public int hashCode() {
-        return getClass().hashCode();
-    }
 }

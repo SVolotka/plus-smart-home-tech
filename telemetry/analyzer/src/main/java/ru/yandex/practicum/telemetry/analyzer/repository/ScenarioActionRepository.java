@@ -5,5 +5,5 @@ import ru.yandex.practicum.telemetry.analyzer.entity.ScenarioAction;
 import ru.yandex.practicum.telemetry.analyzer.entity.ScenarioActionId;
 
 public interface ScenarioActionRepository extends JpaRepository<ScenarioAction, ScenarioActionId> {
- void deleteByScenarioId(Long scenarioId);
+    void deleteByScenarioId(Long scenarioId);
 }

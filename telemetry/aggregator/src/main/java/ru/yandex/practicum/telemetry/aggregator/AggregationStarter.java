@@ -36,7 +36,10 @@ public class AggregationStarter implements AutoCloseable {
 
     public void start() {
         consumer = consumerFactory.createConsumer();
-        Runtime.getRuntime().addShutdownHook(new Thread(this::close));
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            consumer.wakeup();
+            close();
+        }));
 
         try {
             consumer.subscribe(Collections.singletonList(sensorsTopic));
@@ -72,6 +75,8 @@ public class AggregationStarter implements AutoCloseable {
 
                 if (!batchOffsets.isEmpty()) {
                     consumer.commitSync(batchOffsets);
+                    currentOffsets.clear();
+                    currentOffsets.putAll(batchOffsets);
                 }
 
             }

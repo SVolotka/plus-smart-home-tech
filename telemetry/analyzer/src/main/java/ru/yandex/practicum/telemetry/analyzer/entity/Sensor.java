@@ -2,7 +2,6 @@ package ru.yandex.practicum.telemetry.analyzer.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import java.util.Objects;
 
 @Getter
 @Setter
@@ -11,6 +10,7 @@ import java.util.Objects;
 @AllArgsConstructor
 @Entity
 @Table(name = "sensors")
+@EqualsAndHashCode(of = "id")
 public class Sensor {
 
     @Id
@@ -19,17 +19,4 @@ public class Sensor {
 
     @Column(name = "hub_id", nullable = false)
     private String hubId;
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Sensor sensor = (Sensor) o;
-        return id != null && Objects.equals(id, sensor.id);
-    }
-
-    @Override
-    public int hashCode() {
-        return getClass().hashCode();
-    }
 }
