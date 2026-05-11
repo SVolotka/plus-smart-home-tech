@@ -7,6 +7,7 @@ import ru.yandex.practicum.kafka.telemetry.event.SensorEventAvro;
 import ru.yandex.practicum.kafka.telemetry.event.SensorStateAvro;
 import ru.yandex.practicum.kafka.telemetry.event.SensorsSnapshotAvro;
 
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -22,7 +23,7 @@ public class SensorSnapshotService {
     public Optional<SensorsSnapshotAvro> updateSnapshot(SensorEventAvro event) {
         String hubId = event.getHubId();
         String sensorId = event.getId();
-        var eventTimestamp = event.getTimestamp();
+        Instant eventTimestamp = event.getTimestamp();
 
         SensorsSnapshotAvro snapshot = snapshots.computeIfAbsent(hubId, id ->
                 SensorsSnapshotAvro.newBuilder()
