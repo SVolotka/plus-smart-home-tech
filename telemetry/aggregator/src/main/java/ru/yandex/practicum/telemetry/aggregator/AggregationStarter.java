@@ -58,7 +58,11 @@ public class AggregationStarter implements AutoCloseable {
                                 record.offset(), record.partition(), event.getHubId(), event.getId());
 
                         snapshotService.updateSnapshot(event).ifPresent(snapshot ->
-                                snapshotProducer.sendSnapshot(snapshot.getHubId(), snapshot)
+                                snapshotProducer.sendSnapshot(
+                                        snapshot.getHubId(),
+                                        snapshot,
+                                        snapshot.getTimestamp().toEpochMilli()
+                                )
                         );
 
                         TopicPartition tp = new TopicPartition(record.topic(), record.partition());
