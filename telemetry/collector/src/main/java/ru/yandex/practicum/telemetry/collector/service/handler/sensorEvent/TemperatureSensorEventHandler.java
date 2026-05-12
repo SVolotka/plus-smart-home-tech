@@ -1,29 +1,43 @@
 package ru.yandex.practicum.telemetry.collector.service.handler.sensorEvent;
 
 import org.springframework.stereotype.Component;
+import ru.yandex.practicum.grpc.telemetry.event.SensorEventProto;
+import ru.yandex.practicum.grpc.telemetry.event.TemperatureSensorProto;
+import ru.yandex.practicum.kafka.telemetry.event.SensorEventAvro;
 import ru.yandex.practicum.kafka.telemetry.event.TemperatureSensorAvro;
-import ru.yandex.practicum.telemetry.collector.model.enums.SensorEventType;
-import ru.yandex.practicum.telemetry.collector.model.sensorEvent.SensorEvent;
-import ru.yandex.practicum.telemetry.collector.model.sensorEvent.TemperatureSensorEvent;
 import ru.yandex.practicum.telemetry.collector.service.KafkaEventProducer;
+import ru.yandex.practicum.telemetry.collector.service.handler.SensorEventHandler;
+
+import java.time.Instant;
 
 @Component
-public class TemperatureSensorEventHandler extends BaseSensorEventHandler<TemperatureSensorAvro> {
+public class TemperatureSensorEventHandler implements SensorEventHandler {
+    private final KafkaEventProducer producer;
+
     public TemperatureSensorEventHandler(KafkaEventProducer producer) {
-        super(producer);
+        this.producer = producer;
     }
 
     @Override
-    public SensorEventType getMessageType() {
-        return SensorEventType.TEMPERATURE_SENSOR_EVENT;
+    public SensorEventProto.PayloadCase getMessageType() {
+        return SensorEventProto.PayloadCase.TEMPERATURE_SENSOR;
     }
 
     @Override
-    protected TemperatureSensorAvro mapToAvro(SensorEvent event) {
-        TemperatureSensorEvent e = (TemperatureSensorEvent) event;
-        return TemperatureSensorAvro.newBuilder()
-                .setTemperatureC(e.getTemperatureC())
-                .setTemperatureF(e.getTemperatureF())
+    public void handle(SensorEventProto event) {
+        TemperatureSensorProto temperatureSensor = event.getTemperatureSensor();
+        TemperatureSensorAvro avroPayload = TemperatureSensorAvro.newBuilder()
+                .setTemperatureC(temperatureSensor.getTemperatureC())
+                .setTemperatureF(temperatureSensor.getTemperatureF())
                 .build();
+
+        SensorEventAvro eventAvro = SensorEventAvro.newBuilder()
+                .setId(event.getId())
+                .setHubId(event.getHubId())
+                .setTimestamp(Instant.ofEpochSecond(event.getTimestamp().getSeconds(), event.getTimestamp().getNanos()))
+                .setPayload(avroPayload)
+                .build();
+
+        producer.sendSensorEvent(event.getHubId(), eventAvro, eventAvro.getTimestamp());
     }
 }

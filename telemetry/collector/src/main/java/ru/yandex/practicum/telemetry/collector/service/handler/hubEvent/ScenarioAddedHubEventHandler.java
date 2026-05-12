@@ -1,51 +1,79 @@
 package ru.yandex.practicum.telemetry.collector.service.handler.hubEvent;
 
 import org.springframework.stereotype.Component;
+import ru.yandex.practicum.grpc.telemetry.event.DeviceActionProto;
+import ru.yandex.practicum.grpc.telemetry.event.HubEventProto;
+import ru.yandex.practicum.grpc.telemetry.event.ScenarioAddedEventProto;
+import ru.yandex.practicum.grpc.telemetry.event.ScenarioConditionProto;
 import ru.yandex.practicum.kafka.telemetry.event.ActionTypeAvro;
 import ru.yandex.practicum.kafka.telemetry.event.ConditionOperationAvro;
 import ru.yandex.practicum.kafka.telemetry.event.ConditionTypeAvro;
 import ru.yandex.practicum.kafka.telemetry.event.DeviceActionAvro;
+import ru.yandex.practicum.kafka.telemetry.event.HubEventAvro;
 import ru.yandex.practicum.kafka.telemetry.event.ScenarioAddedEventAvro;
 import ru.yandex.practicum.kafka.telemetry.event.ScenarioConditionAvro;
-import ru.yandex.practicum.telemetry.collector.model.enums.HubEventType;
-import ru.yandex.practicum.telemetry.collector.model.hubEvent.HubEvent;
-import ru.yandex.practicum.telemetry.collector.model.hubEvent.ScenarioAddedEvent;
 import ru.yandex.practicum.telemetry.collector.service.KafkaEventProducer;
 import ru.yandex.practicum.telemetry.collector.service.handler.EnumMapper;
+import ru.yandex.practicum.telemetry.collector.service.handler.HubEventHandler;
 
+import java.time.Instant;
 import java.util.stream.Collectors;
 
 @Component
-public class ScenarioAddedHubEventHandler extends BaseHubEventHandler<ScenarioAddedEventAvro> {
+public class ScenarioAddedHubEventHandler implements HubEventHandler {
+    private final KafkaEventProducer producer;
+
     public ScenarioAddedHubEventHandler(KafkaEventProducer producer) {
-        super(producer);
+        this.producer = producer;
     }
 
     @Override
-    public HubEventType getMessageType() {
-        return HubEventType.SCENARIO_ADDED;
+    public HubEventProto.PayloadCase getMessageType() {
+        return HubEventProto.PayloadCase.SCENARIO_ADDED;
     }
 
     @Override
-    protected ScenarioAddedEventAvro mapToAvro(HubEvent event) {
-        ScenarioAddedEvent e = (ScenarioAddedEvent) event;
-        return ScenarioAddedEventAvro.newBuilder()
-                .setName(e.getName())
-                .setConditions(e.getConditions().stream()
-                        .map(c -> ScenarioConditionAvro.newBuilder()
-                                .setSensorId(c.getSensorId())
-                                .setType(EnumMapper.map(c.getType(), ConditionTypeAvro.class))
-                                .setOperation(EnumMapper.map(c.getOperation(), ConditionOperationAvro.class))
-                                .setValue(c.getValue())
-                                .build())
+    public void handle(HubEventProto event) {
+        ScenarioAddedEventProto scenarioAdded = event.getScenarioAdded();
+        ScenarioAddedEventAvro avroPayload = ScenarioAddedEventAvro.newBuilder()
+                .setName(scenarioAdded.getName())
+                .setConditions(scenarioAdded.getConditionList().stream()
+                        .map(this::mapCondition)
                         .collect(Collectors.toList()))
-                .setActions(e.getActions().stream()
-                        .map(a -> DeviceActionAvro.newBuilder()
-                                .setSensorId(a.getSensorId())
-                                .setType(EnumMapper.map(a.getType(), ActionTypeAvro.class))
-                                .setValue(a.getValue())
-                                .build())
+                .setActions(scenarioAdded.getActionList().stream()
+                        .map(this::mapAction)
                         .collect(Collectors.toList()))
                 .build();
+
+        HubEventAvro eventAvro = HubEventAvro.newBuilder()
+                .setHubId(event.getHubId())
+                .setTimestamp(Instant.ofEpochSecond(event.getTimestamp().getSeconds(), event.getTimestamp().getNanos()))
+                .setPayload(avroPayload)
+                .build();
+
+        producer.sendHubEvent(event.getHubId(), eventAvro, eventAvro.getTimestamp());
+    }
+
+    private ScenarioConditionAvro mapCondition(ScenarioConditionProto scenarioCondition) {
+        ScenarioConditionAvro.Builder builder = ScenarioConditionAvro.newBuilder()
+                .setSensorId(scenarioCondition.getSensorId())
+                .setType(EnumMapper.map(scenarioCondition.getType(), ConditionTypeAvro.class))
+                .setOperation(EnumMapper.map(scenarioCondition.getOperation(), ConditionOperationAvro.class));
+        if (scenarioCondition.hasBoolValue()) {
+            builder.setValue(scenarioCondition.getBoolValue());
+        } else if (scenarioCondition.hasIntValue()) {
+            builder.setValue(scenarioCondition.getIntValue());
+        }
+        return builder.build();
+    }
+
+    private DeviceActionAvro mapAction(DeviceActionProto deviceAction) {
+        DeviceActionAvro.Builder builder = DeviceActionAvro.newBuilder()
+                .setSensorId(deviceAction.getSensorId())
+                .setType(EnumMapper.map(deviceAction.getType(), ActionTypeAvro.class));
+        if (deviceAction.hasValue()) {
+            builder.setValue(deviceAction.getValue());
+        }
+        return builder.build();
     }
 }

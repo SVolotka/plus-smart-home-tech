@@ -1,30 +1,44 @@
 package ru.yandex.practicum.telemetry.collector.service.handler.sensorEvent;
 
 import org.springframework.stereotype.Component;
+import ru.yandex.practicum.grpc.telemetry.event.MotionSensorProto;
+import ru.yandex.practicum.grpc.telemetry.event.SensorEventProto;
 import ru.yandex.practicum.kafka.telemetry.event.MotionSensorAvro;
-import ru.yandex.practicum.telemetry.collector.model.enums.SensorEventType;
-import ru.yandex.practicum.telemetry.collector.model.sensorEvent.MotionSensorEvent;
-import ru.yandex.practicum.telemetry.collector.model.sensorEvent.SensorEvent;
+import ru.yandex.practicum.kafka.telemetry.event.SensorEventAvro;
 import ru.yandex.practicum.telemetry.collector.service.KafkaEventProducer;
+import ru.yandex.practicum.telemetry.collector.service.handler.SensorEventHandler;
+
+import java.time.Instant;
 
 @Component
-public class MotionSensorEventHandler extends BaseSensorEventHandler<MotionSensorAvro> {
+public class MotionSensorEventHandler implements SensorEventHandler {
+    private final KafkaEventProducer producer;
+
     public MotionSensorEventHandler(KafkaEventProducer producer) {
-        super(producer);
+        this.producer = producer;
     }
 
     @Override
-    public SensorEventType getMessageType() {
-        return SensorEventType.MOTION_SENSOR_EVENT;
+    public SensorEventProto.PayloadCase getMessageType() {
+        return SensorEventProto.PayloadCase.MOTION_SENSOR;
     }
 
     @Override
-    protected MotionSensorAvro mapToAvro(SensorEvent event) {
-        MotionSensorEvent e = (MotionSensorEvent) event;
-        return MotionSensorAvro.newBuilder()
-                .setLinkQuality(e.getLinkQuality())
-                .setMotion(e.getMotion())
-                .setVoltage(e.getVoltage())
+    public void handle(SensorEventProto event) {
+        MotionSensorProto motionSensor = event.getMotionSensor();
+        MotionSensorAvro avroPayload = MotionSensorAvro.newBuilder()
+                .setLinkQuality(motionSensor.getLinkQuality())
+                .setMotion(motionSensor.getMotion())
+                .setVoltage(motionSensor.getVoltage())
                 .build();
+
+        SensorEventAvro eventAvro = SensorEventAvro.newBuilder()
+                .setId(event.getId())
+                .setHubId(event.getHubId())
+                .setTimestamp(Instant.ofEpochSecond(event.getTimestamp().getSeconds(), event.getTimestamp().getNanos()))
+                .setPayload(avroPayload)
+                .build();
+        producer.sendSensorEvent(event.getHubId(), eventAvro, eventAvro.getTimestamp());
+
     }
 }
