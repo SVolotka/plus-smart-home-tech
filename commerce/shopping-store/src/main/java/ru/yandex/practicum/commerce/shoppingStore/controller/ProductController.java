@@ -29,7 +29,7 @@ public class ProductController {
 
     private final ProductService productService;
 
-@GetMapping
+    @GetMapping
     public PageProductDto getProducts(
             @RequestParam ProductCategory category,
             @RequestParam(defaultValue = "0") int page,
@@ -65,17 +65,11 @@ public class ProductController {
         return productService.removeProduct(productId);
     }
 
-//    @PostMapping("/quantityState")
-//    public Boolean setProductQuantityState(@Valid @RequestBody SetProductQuantityStateRequest request) {
-//        log.info("Получен запрос на изменение статуса остатка: productId={}, state={}",
-//                request.getProductId(), request.getQuantityState());
-//        return productService.setQuantityState(request.getProductId(), request.getQuantityState());
-//    }
-@PostMapping("/quantityState")
-public Boolean setProductQuantityState(@RequestParam UUID productId,
-                                       @RequestParam QuantityState quantityState) {
-    log.info("Запрос на изменение статуса остатка товара: productId={}, quantityState={}", productId, quantityState);
-    return productService.setQuantityState(productId, quantityState);
-}
+    @PostMapping("/quantityState")
+    public Boolean setProductQuantityState(@RequestParam UUID productId,
+                                           @RequestParam QuantityState quantityState) {
+        log.info("Запрос на изменение статуса остатка товара: productId={}, quantityState={}", productId, quantityState);
+        return productService.setQuantityState(productId, quantityState);
+    }
 
 }
