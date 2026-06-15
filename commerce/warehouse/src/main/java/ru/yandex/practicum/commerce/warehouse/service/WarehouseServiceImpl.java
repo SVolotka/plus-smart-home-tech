@@ -88,7 +88,7 @@ public class WarehouseServiceImpl implements WarehouseService {
                         "Недостаточно товара " + productId + " на складе");
             }
             totalWeight += product.getWeight() * requestQuantity;
-            totalVolume += product.getWeight() * product.getHeight() * product.getDepth() * requestQuantity;
+            totalVolume += product.getWidth() * product.getHeight() * product.getDepth() * requestQuantity;
             if (product.isFragile()) {
                 hasFragile = true;
             }

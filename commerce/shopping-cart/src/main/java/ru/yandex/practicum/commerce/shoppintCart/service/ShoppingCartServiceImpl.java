@@ -25,7 +25,6 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-@Transactional(readOnly = true)
 public class ShoppingCartServiceImpl implements ShoppingCartService {
     private final ShoppingCartMapper cartMapper;
     private final ShoppingCartRepository cartRepository;
@@ -33,6 +32,7 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
     private final CircuitBreakerFactory circuitBreakerFactory;
 
     @Override
+    @Transactional
     public ShoppingCartDto getShoppingCart(String username) {
         ShoppingCart cart = cartRepository.findByUsernameAndState(username, ShoppingCartState.ACTIVE)
                 .orElseGet(() -> createNewCart(username));
@@ -48,25 +48,19 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
                 .shoppingCartId(UUID.randomUUID())
                 .build();
         checkWarehouseAvailability(shoppingCartDto);
-        ShoppingCart cart = cartRepository.findByUsernameAndState(username, ShoppingCartState.ACTIVE)
-                .orElseGet(() -> createNewCart(username));
-        products.forEach((productId, quantity) ->
-                cart.getProducts().merge(productId, quantity, Long::sum));
-        cartRepository.save(cart);
-        log.info("Товары добавлены в корзину пользователя {}: {}", username, products);
-        return cartMapper.toDto(cart);
+        return addProductsInTransaction(username, products);
     }
 
     @Override
     @Transactional
     public void deactivateCart(String username) {
-ShoppingCart cart = cartRepository.findByUsernameAndState(username, ShoppingCartState.ACTIVE)
-        .orElseThrow(() -> {
-                log.warn("Активная корзина для пользователя {} не найдена", username);
-        return new NoSuchElementException("Активная корзина не найдена");
-        });
-cart.setState(ShoppingCartState.DEACTIVATED);
-cartRepository.save(cart);
+        ShoppingCart cart = cartRepository.findByUsernameAndState(username, ShoppingCartState.ACTIVE)
+                .orElseThrow(() -> {
+                    log.warn("Активная корзина для пользователя {} не найдена", username);
+                    return new NoSuchElementException("Активная корзина не найдена");
+                });
+        cart.setState(ShoppingCartState.DEACTIVATED);
+        cartRepository.save(cart);
         log.info("Корзина пользователя {} деактивирована", username);
     }
 
@@ -97,6 +91,17 @@ cartRepository.save(cart);
         cart.getProducts().put(productId, newQuantity);
         cartRepository.save(cart);
         log.info("Изменено количество товара {} в корзине пользователя {}: {}", productId, username, newQuantity);
+        return cartMapper.toDto(cart);
+    }
+
+    @Transactional
+    public ShoppingCartDto addProductsInTransaction(String username, Map<UUID, Long> products) {
+        ShoppingCart cart = cartRepository.findByUsernameAndState(username, ShoppingCartState.ACTIVE)
+                .orElseGet(() -> createNewCart(username));
+        products.forEach((productId, quantity) ->
+                cart.getProducts().merge(productId, quantity, Long::sum));
+        cartRepository.save(cart);
+        log.info("Товары добавлены в корзину пользователя {}: {}", username, products);
         return cartMapper.toDto(cart);
     }
 

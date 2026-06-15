@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import ru.yandex.practicum.commerce.interactionApi.feignClient.ProductClient;
 import ru.yandex.practicum.commerce.interactionApi.shoppingStore.dto.PageProductDto;
 import ru.yandex.practicum.commerce.interactionApi.shoppingStore.dto.PageableObject;
 import ru.yandex.practicum.commerce.interactionApi.shoppingStore.dto.ProductDto;
@@ -25,10 +26,11 @@ import java.util.UUID;
 @RequestMapping("/api/v1/shopping-store")
 @RequiredArgsConstructor
 @Slf4j
-public class ProductController {
+public class ProductController implements ProductClient {
 
     private final ProductService productService;
 
+    @Override
     @GetMapping
     public PageProductDto getProducts(
             @RequestParam ProductCategory category,
@@ -41,30 +43,35 @@ public class ProductController {
         return productService.getProducts(category, pageableObject);
     }
 
+    @Override
     @GetMapping("/{productId}")
     public ProductDto getProduct(@PathVariable UUID productId) {
         log.debug("Запрос товара по id={}", productId);
         return productService.getProduct(productId);
     }
 
+    @Override
     @PutMapping
     public ProductDto createProduct(@Valid @RequestBody ProductDto dto) {
         log.info("Получен запрос на создание товара: {}", dto.getProductName());
         return productService.createProduct(dto);
     }
 
+    @Override
     @PostMapping
     public ProductDto updateProduct(@Valid @RequestBody ProductDto dto) {
         log.info("Получен запрос на обновление товара id={}", dto.getProductId());
         return productService.updateProduct(dto);
     }
 
+    @Override
     @PostMapping("/removeProductFromStore")
     public Boolean removeProductFromStore(@RequestBody UUID productId) {
         log.info("Получен запрос на удаление товара id={}", productId);
         return productService.removeProduct(productId);
     }
 
+    @Override
     @PostMapping("/quantityState")
     public Boolean setProductQuantityState(@RequestParam UUID productId,
                                            @RequestParam QuantityState quantityState) {

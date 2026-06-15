@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import ru.yandex.practicum.commerce.interactionApi.exception.NotAuthorizedUserException;
+import ru.yandex.practicum.commerce.interactionApi.feignClient.ShoppingCartClient;
 import ru.yandex.practicum.commerce.interactionApi.shoppingCart.dto.ChangeProductQuantityRequest;
 import ru.yandex.practicum.commerce.interactionApi.shoppingCart.dto.ShoppingCartDto;
 import ru.yandex.practicum.commerce.shoppintCart.service.ShoppingCartService;
@@ -25,9 +26,10 @@ import java.util.UUID;
 @RequestMapping("/api/v1/shopping-cart")
 @RequiredArgsConstructor
 @Slf4j
-public class ShoppingCartController {
+public class ShoppingCartController implements ShoppingCartClient {
     private final ShoppingCartService cartService;
 
+    @Override
     @GetMapping
     public ShoppingCartDto getShoppingCart(@RequestParam String username) {
         if (username == null || username.isBlank()) {
@@ -37,6 +39,7 @@ public class ShoppingCartController {
         return cartService.getShoppingCart(username);
     }
 
+    @Override
     @PutMapping
     public ShoppingCartDto addProductToShoppingCart(@RequestParam String username,
                                                     @RequestBody Map<UUID, Long> products) {
@@ -47,6 +50,7 @@ public class ShoppingCartController {
         return cartService.addProducts(username, products);
     }
 
+    @Override
     @DeleteMapping
     public ResponseEntity<Void> deactivatedCurrentShoppingCart(@RequestParam String username) {
         if (username == null || username.isBlank()) {
@@ -57,6 +61,7 @@ public class ShoppingCartController {
         return ResponseEntity.ok().build();
     }
 
+    @Override
     @PostMapping("/remove")
     public ShoppingCartDto removeFromShoppingCart(@RequestParam String username,
                                                   @RequestBody List<UUID> productIds) {
@@ -67,6 +72,7 @@ public class ShoppingCartController {
         return cartService.removeProducts(username, productIds);
     }
 
+    @Override
     @PostMapping("/change-quantity")
     public ShoppingCartDto changeProductQuantity(@RequestParam String username,
                                                  @Valid @RequestBody ChangeProductQuantityRequest request) {
