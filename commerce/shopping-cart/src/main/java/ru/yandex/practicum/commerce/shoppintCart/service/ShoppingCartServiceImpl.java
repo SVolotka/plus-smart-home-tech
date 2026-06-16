@@ -6,6 +6,7 @@ import org.springframework.cloud.client.circuitbreaker.CircuitBreaker;
 import org.springframework.cloud.client.circuitbreaker.CircuitBreakerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 import ru.yandex.practicum.commerce.interactionApi.exception.NoProductsInShoppingCartException;
 import ru.yandex.practicum.commerce.interactionApi.exception.WarehouseServiceUnavailableException;
 import ru.yandex.practicum.commerce.interactionApi.feignClient.WarehouseClient;
@@ -30,6 +31,7 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
     private final ShoppingCartRepository cartRepository;
     private final WarehouseClient warehouseClient;
     private final CircuitBreakerFactory circuitBreakerFactory;
+    private final TransactionTemplate transactionTemplate;
 
     @Override
     @Transactional
@@ -41,14 +43,14 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
     }
 
     @Override
-    @Transactional
     public ShoppingCartDto addProducts(String username, Map<UUID, Long> products) {
         ShoppingCartDto shoppingCartDto = ShoppingCartDto.builder()
                 .products(products)
                 .shoppingCartId(UUID.randomUUID())
                 .build();
         checkWarehouseAvailability(shoppingCartDto);
-        return addProductsInTransaction(username, products);
+        return transactionTemplate.execute(status ->
+                addProductsInTransaction(username, products));
     }
 
     @Override
@@ -94,7 +96,6 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
         return cartMapper.toDto(cart);
     }
 
-    @Transactional
     public ShoppingCartDto addProductsInTransaction(String username, Map<UUID, Long> products) {
         ShoppingCart cart = cartRepository.findByUsernameAndState(username, ShoppingCartState.ACTIVE)
                 .orElseGet(() -> createNewCart(username));
