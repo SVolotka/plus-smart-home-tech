@@ -1,6 +1,7 @@
 CREATE TABLE IF NOT EXISTS payments (
     payment_id UUID PRIMARY KEY,
     order_id UUID NOT NULL,
+    product_price DOUBLE PRECISION,
     total_payment DOUBLE PRECISION,
     delivery_total DOUBLE PRECISION,
     fee_total DOUBLE PRECISION,

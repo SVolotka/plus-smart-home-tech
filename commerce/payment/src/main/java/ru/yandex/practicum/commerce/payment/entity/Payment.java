@@ -46,6 +46,9 @@ public class Payment {
     @Column(name = "fee_total")
     private Double feeTotal;
 
+    @Column(name = "product_price")
+    private Double productPrice;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     @Builder.Default

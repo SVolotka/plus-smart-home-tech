@@ -31,4 +31,6 @@ public interface OrderService {
     OrderDto assemblyFailed(UUID orderId);
 
     OrderDto productReturn(ProductReturnRequest request);
+
+    OrderDto getOrder(UUID orderId);
 }

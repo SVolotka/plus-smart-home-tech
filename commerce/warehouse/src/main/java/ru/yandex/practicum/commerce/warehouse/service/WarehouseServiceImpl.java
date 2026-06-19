@@ -130,7 +130,7 @@ public class WarehouseServiceImpl implements WarehouseService {
             UUID productId = entry.getKey();
             long qty = entry.getValue();
             WarehouseProduct product = warehouseRepository.findById(productId)
-                    .orElseThrow(() -> new ProductInShoppingCartNotInWarehouseException("Товар не найден"));
+                    .orElseThrow(() -> new ProductInShoppingCartNotInWarehouseException("Товар " + productId + " отсутствует на складе"));
             if (product.getQuantity() < qty) {
                 throw new ProductInShoppingCartLowQuantityInWarehouse("Недостаточно товара " + productId);
             }
@@ -174,7 +174,7 @@ public class WarehouseServiceImpl implements WarehouseService {
             UUID productId = entry.getKey();
             long qty = entry.getValue();
             WarehouseProduct product = warehouseRepository.findById(productId)
-                    .orElseThrow(() -> new NoSpecifiedProductInWarehouseException("Товар не найден"));
+                    .orElseThrow(() -> new NoSpecifiedProductInWarehouseException("Товар " + productId + " отсутствует на складе"));
             product.setQuantity(product.getQuantity() + qty);
             warehouseRepository.save(product);
         }

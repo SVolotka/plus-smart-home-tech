@@ -55,12 +55,14 @@ public class PaymentServiceImpl implements PaymentService {
     public PaymentDto payment(OrderDto order) {
         double total = getTotalCost(order);
         double delivery = order.getDeliveryPrice() != null ? order.getDeliveryPrice() : 0.0;
-        double tax = total - delivery - productCost(order);
+        double productCost = productCost(order);
+        double tax = total - delivery - productCost;
 
         Payment payment = Payment.builder()
                 .orderId(order.getOrderId())
                 .totalPayment(total)
                 .deliveryTotal(delivery)
+                .productPrice(productCost)
                 .feeTotal(tax)
                 .status(PaymentStatus.PENDING)
                 .build();

@@ -16,4 +16,5 @@ public class PaymentDto {
     private Double totalPayment;
     private Double deliveryTotal;
     private Double feeTotal;
+    private Double productPrice;
 }
