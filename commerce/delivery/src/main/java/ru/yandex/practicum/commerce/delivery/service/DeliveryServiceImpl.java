@@ -61,7 +61,7 @@ public class DeliveryServiceImpl implements DeliveryService {
     public void deliveryPicked(UUID orderId) {
         Delivery delivery = deliveryRepository.findByOrderId(orderId)
                 .orElseThrow(() -> new NoDeliveryFoundException("Доставка не найдена"));
-        delivery.setDeliveryState(DeliveryState.IN_PROGRESS);
+        delivery.setDeliveryState(DeliveryState.IN_DELIVERY);
         transactionTemplate.execute(status -> {
             deliveryRepository.save(delivery);
             return null;
