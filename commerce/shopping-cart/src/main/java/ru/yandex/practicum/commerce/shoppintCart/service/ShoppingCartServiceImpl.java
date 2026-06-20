@@ -34,7 +34,6 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
     private final TransactionTemplate transactionTemplate;
 
     @Override
-    @Transactional
     public ShoppingCartDto getShoppingCart(String username) {
         ShoppingCart cart = cartRepository.findByUsernameAndState(username, ShoppingCartState.ACTIVE)
                 .orElseGet(() -> createNewCart(username));

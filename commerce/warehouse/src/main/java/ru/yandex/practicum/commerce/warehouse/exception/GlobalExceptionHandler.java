@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import ru.yandex.practicum.commerce.interactionApi.exception.NoSpecifiedProductInWarehouseException;
 import ru.yandex.practicum.commerce.interactionApi.exception.ProductInShoppingCartLowQuantityInWarehouse;
+import ru.yandex.practicum.commerce.interactionApi.exception.ProductInShoppingCartNotInWarehouseException;
 import ru.yandex.practicum.commerce.interactionApi.exception.SpecifiedProductAlreadyInWarehouseException;
 import ru.yandex.practicum.commerce.interactionApi.model.ErrorResponse;
 
@@ -41,6 +42,17 @@ public class GlobalExceptionHandler {
                 .httpStatus(HttpStatus.BAD_REQUEST)
                 .message(ex.getMessage())
                 .userMessage("Товаров недостаточно на складе")
+                .timestamp(LocalDateTime.now())
+                .build();
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+    }
+
+    @ExceptionHandler(ProductInShoppingCartNotInWarehouseException.class)
+    public ResponseEntity<ErrorResponse> handleNotInWarehouse(ProductInShoppingCartNotInWarehouseException ex) {
+        ErrorResponse error = ErrorResponse.builder()
+                .httpStatus(HttpStatus.BAD_REQUEST)
+                .message(ex.getMessage())
+                .userMessage("Товар отсутствует на складе")
                 .timestamp(LocalDateTime.now())
                 .build();
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
